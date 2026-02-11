@@ -19,5 +19,20 @@
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
-  }
+  },
+  "description": "Qualitative research tool with AI-facilitated interviews, coding interface, and diachronic analysis",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chaosste/MicroPhenom-AI"
+  },
+  "keywords": [
+    "qualitative-research",
+    "phenomenology",
+    "coding-interface",
+    "gemini-api",
+    "research-tool",
+    "typescript"
+  ],
+  "author": "Stephen Beale",
+  "license": "MIT"
 }
