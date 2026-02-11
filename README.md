@@ -1,10 +1,12 @@
 <div align="center">
 
-# MicroPhenom AI
+# 🔬 MicroPhenom AI
 
 **Voice-Enabled Micro-Phenomenology Research Tool**
 
-*Record, analyze, and codify the structure of lived experience*
+*Record, analyse, and codify the structure of lived experience*
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
 </div>
 
@@ -12,29 +14,31 @@
 
 ## About
 
-MicroPhenom AI is a voice-enabled research tool for conducting micro-phenomenology interviews — the systematic exploration of the fine-grained structure of subjective experience. Powered by Gemini 2.5 Flash, it guides interviewers and participants through the process of eliciting, recording, analyzing, and codifying first-person accounts of lived experience.
+Voice-enabled tool for conducting and analysing micro-phenomenology interviews. Record sessions, automatically codify diachronic and synchronic structures, and explore the depths of lived experience. Conducts interviews through a speech interface, records your own interviews, and accepts transcripts.
 
-This is the **vanilla edition** — designed for exploring any lived experience, from everyday moments to extraordinary states. For psychedelic-specific phenomenology, see [Anubis](https://github.com/chaosste/Anubis).
+This is the **vanilla edition** — designed for exploring any lived experience, from everyday micro-moments to extraordinary states of consciousness.
 
-## Key Features
+## Features
 
-- **Voice-Enabled Interviews** — Natural spoken interaction powered by Gemini 2.5 Flash
-- **Diachronic Analysis** — Map the temporal unfolding of an experience
-- **Synchronic Analysis** — Explore the structural layers present at a single moment
-- **Beginner & Advanced Modes** — Accessible entry point with depth for experienced researchers
-- **US/UK Settings** — Spelling and accent preferences for voice output
-- **Session Management** — Persistent sessions via localStorage
-- **Transcript Upload** — Import text transcripts for AI-assisted analysis
-- **Codification** — Systematic categorization of experiential elements
+- 🎙️ **Voice-Enabled Interviews** — Natural spoken interaction powered by Gemini 2.5 Flash
+- 📊 **Diachronic Analysis** — Map the temporal unfolding of an experience
+- 🔍 **Synchronic Analysis** — Explore the structural layers present at a single moment
+- 🎓 **Beginner & Advanced Modes** — Accessible entry point with depth for experienced researchers
+- 🇬🇧 **US/UK Settings** — Spelling and accent preferences for voice output
+- 💾 **Session Management** — Persistent sessions via localStorage
+- 📝 **Transcript Upload** — Import text transcripts for AI-assisted analysis
+- 🏷️ **Automatic Codification** — Systematic categorisation of experiential elements
 
 ## Tech Stack
 
-- **Frontend:** React + TypeScript, Vite
-- **AI:** Google Gemini 2.5 Flash
-- **Storage:** localStorage for session persistence
-- **Deployment:** Docker / Google Cloud
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React + TypeScript, Vite |
+| AI | Google Gemini 2.5 Flash |
+| Storage | localStorage |
+| Deployment | Docker / Google Cloud |
 
-## Getting Started
+## Installation
 
 ```bash
 # Clone the repository
@@ -44,16 +48,24 @@ cd MicroPhenom-AI-1
 # Install dependencies
 npm install
 
-# Set up environment
-# Requires a Google Gemini API key
+# Configure your Gemini API key
 
 # Run development server
 npm run dev
 ```
 
-## Disclaimer
+## How It Works
 
-MicroPhenom AI is a research and documentation tool. It does not provide medical, psychological, or therapeutic advice. It is not a substitute for professional support.
+1. **Conduct** — Start a live interview session via voice, or upload an existing transcript
+2. **Record** — Capture sessions with the built-in recorder
+3. **Analyse** — AI codifies diachronic (temporal) and synchronic (structural) dimensions
+4. **Explore** — Navigate the fine-grained structure of lived experience
+
+## Related Projects
+
+> 💡 **Like MicroPhenom AI? You'll love [NeuroPhenom AI](https://github.com/chaosste/NeuroPhenom-AI)** — the specialist edition for granular reports on altered states of consciousness.
+
+> 🎭 For psychedelic-specific phenomenology, see [Anubis](https://github.com/chaosste/Anubis) — voice-driven trip report interviews with deity-themed characters.
 
 ---
 
@@ -62,5 +74,7 @@ MicroPhenom AI is a research and documentation tool. It does not provide medical
 **Built by [Steve Beale](https://newpsychonaut.com)**
 
 [newpsychonaut.com](https://newpsychonaut.com)
+
+© 2026 Stephen Beale. MIT License.
 
 </div>
