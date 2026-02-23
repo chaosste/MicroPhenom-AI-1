@@ -45,30 +45,36 @@ export const analyzeTextTranscript = async (text: string): Promise<AnalysisResul
   const modelId = "gemini-2.5-flash";
 
   const prompt = `
-  You are an expert micro-phenomenology researcher. Your task is to analyze the following text transcript of an interview.
-  
-  Perform the following steps:
-  1. **Structure**: specific logical segments. If speaker labels are present in the text, use them. If not, infer 'Participant' or 'Subject'. Assign '00:00' to timestamps if they are missing.
-  2. **Preprocessing**: Identify "satellite" information. In micro-phenomenology, satellites are comments, judgments, generalizations, context, or theoretical knowledge that is NOT the direct lived experience. Separate these.
-  3. **Diachronic Analysis**: Identify the temporal evolution of the specific experience described. Break it down into sequential phases (the "film" of the experience).
-  4. **Synchronic Analysis**: For the key moments, identify the sensory modalities (Visual, Auditory, Kinesthetic/Bodily, etc.) and how they appear (submodalities, e.g., "blurry image", "internal tension").
-  5. **Suggestions**: Suggest 2-3 follow-up questions the interviewer could ask to deepen the evocation of the "how".
+  You are an expert micro-phenomenology and neurophenomenology analyst.
 
-  Return the result in the following JSON format:
+  Analyze the transcript using canonical output fields.
+
+  Return only JSON with this structure:
   {
-    "transcriptSegments": [
-      { "speaker": "Speaker Name", "text": "Segment text...", "timestamp": "00:00" }
+    "summary": "string",
+    "takeaways": ["string"],
+    "modalities": ["string"],
+    "phasesCount": 0,
+    "codebookSuggestions": [
+      { "label": "string", "rationale": "string", "exemplarQuote": "string" }
     ],
-    "summary": "Brief summary of the target experience...",
     "diachronicStructure": [
-      { "phase": "Phase Name", "description": "What happened", "timestampEstimate": "approx time like 00:00" }
+      { "phaseName": "string", "description": "string", "startTime": "00:00" }
     ],
     "synchronicStructure": [
-      { "modality": "Visual/Auditory/Kinesthetic/etc", "description": "Description of the sensation", "submodality": "specific quality" }
+      { "category": "string", "details": "string" }
     ],
-    "satellites": ["Satellite comment 1", "Satellite comment 2"],
-    "suggestions": ["Question 1", "Question 2"]
+    "transcript": [
+      { "speaker": "Interviewer|Interviewee|AI", "text": "string", "timestamp": "00:00" }
+    ],
+    "satellites": ["string"],
+    "suggestions": ["string"]
   }
+
+  Rules:
+  - Prioritize process ("how") over theory ("why").
+  - If timestamps are missing, use "00:00".
+  - Do not invent unsupported details.
 
   TRANSCRIPT TEXT:
   ${text}
@@ -84,7 +90,7 @@ export const analyzeTextTranscript = async (text: string): Promise<AnalysisResul
     });
 
     if (response.text) {
-      return JSON.parse(response.text) as AnalysisResult;
+      return normalizeAnalysisResult(JSON.parse(response.text));
     } else {
       throw new Error("No response text from Gemini");
     }
@@ -101,31 +107,33 @@ export const analyzeInterview = async (audioBlob: Blob): Promise<AnalysisResult>
   const modelId = "gemini-2.5-flash"; 
 
   const prompt = `
-  You are an expert micro-phenomenology researcher. Your task is to analyze the following audio recording of an interview.
-  
-  Perform the following steps:
-  1. **Transcription & Diarization**: Transcribe the interview verbatim. Identify speakers (e.g., 'Interviewer', 'Interviewee'). structure this as a list of segments.
-  2. **Preprocessing**: Identify "satellite" information. In micro-phenomenology, satellites are comments, judgments, generalizations, context, or theoretical knowledge that is NOT the direct lived experience. Separate these.
-  3. **Diachronic Analysis**: Identify the temporal evolution of the specific experience described. Break it down into sequential phases (the "film" of the experience).
-  4. **Synchronic Analysis**: For the key moments, identify the sensory modalities (Visual, Auditory, Kinesthetic/Bodily, etc.) and how they appear (submodalities, e.g., "blurry image", "internal tension").
-  5. **Suggestions**: Suggest 2-3 follow-up questions the interviewer could ask to deepen the evocation of the "how".
+  You are an expert micro-phenomenology and neurophenomenology analyst.
 
-  Return the result in the following JSON format:
+  Analyze this interview audio and return only JSON with canonical fields:
   {
-    "transcriptSegments": [
-      { "speaker": "Interviewer", "text": "Can you tell me...", "timestamp": "00:00" },
-      { "speaker": "Interviewee", "text": "Well, it started when...", "timestamp": "00:15" }
+    "summary": "string",
+    "takeaways": ["string"],
+    "modalities": ["string"],
+    "phasesCount": 0,
+    "codebookSuggestions": [
+      { "label": "string", "rationale": "string", "exemplarQuote": "string" }
     ],
-    "summary": "Brief summary of the target experience...",
     "diachronicStructure": [
-      { "phase": "Phase Name", "description": "What happened", "timestampEstimate": "approx time like 00:30" }
+      { "phaseName": "string", "description": "string", "startTime": "00:00" }
     ],
     "synchronicStructure": [
-      { "modality": "Visual/Auditory/Kinesthetic/etc", "description": "Description of the sensation", "submodality": "specific quality" }
+      { "category": "string", "details": "string" }
     ],
-    "satellites": ["Satellite comment 1", "Satellite comment 2"],
-    "suggestions": ["Question 1", "Question 2"]
+    "transcript": [
+      { "speaker": "Interviewer|Interviewee|AI", "text": "string", "timestamp": "00:00" }
+    ],
+    "satellites": ["string"],
+    "suggestions": ["string"]
   }
+
+  Rules:
+  - Prioritize process ("how") over theory ("why").
+  - Keep claims conservative when evidence is sparse.
   `;
 
   try {
@@ -148,7 +156,7 @@ export const analyzeInterview = async (audioBlob: Blob): Promise<AnalysisResult>
     });
 
     if (response.text) {
-      return JSON.parse(response.text) as AnalysisResult;
+      return normalizeAnalysisResult(JSON.parse(response.text));
     } else {
       throw new Error("No response text from Gemini");
     }
@@ -156,4 +164,49 @@ export const analyzeInterview = async (audioBlob: Blob): Promise<AnalysisResult>
     console.error("Gemini Analysis Error:", error);
     throw error;
   }
+};
+
+const normalizeAnalysisResult = (raw: any): AnalysisResult => {
+  const canonicalTranscript = Array.isArray(raw?.transcript) ? raw.transcript : [];
+  const legacyTranscript = Array.isArray(raw?.transcriptSegments) ? raw.transcriptSegments : [];
+  const transcriptSegments = (canonicalTranscript.length > 0 ? canonicalTranscript : legacyTranscript).map((s: any) => ({
+    speaker: String(s?.speaker || 'Interviewee'),
+    text: String(s?.text || ''),
+    timestamp: String(s?.timestamp || '00:00')
+  }));
+
+  const diachronic = Array.isArray(raw?.diachronicStructure) ? raw.diachronicStructure : [];
+  const synchronic = Array.isArray(raw?.synchronicStructure) ? raw.synchronicStructure : [];
+
+  return {
+    summary: String(raw?.summary || ''),
+    takeaways: Array.isArray(raw?.takeaways) ? raw.takeaways.map(String) : [],
+    modalities: Array.isArray(raw?.modalities) ? raw.modalities.map(String) : [],
+    phasesCount: Number.isFinite(raw?.phasesCount) ? Number(raw.phasesCount) : diachronic.length,
+    codebookSuggestions: Array.isArray(raw?.codebookSuggestions)
+      ? raw.codebookSuggestions.map((s: any) => ({
+          label: String(s?.label || ''),
+          rationale: String(s?.rationale || ''),
+          exemplarQuote: String(s?.exemplarQuote || '')
+        })).filter((s: any) => s.label)
+      : [],
+    transcript: transcriptSegments,
+    transcriptSegments,
+    diachronicStructure: diachronic.map((p: any) => ({
+      phaseName: String(p?.phaseName || p?.phase || ''),
+      phase: String(p?.phase || p?.phaseName || ''),
+      description: String(p?.description || ''),
+      startTime: String(p?.startTime || p?.timestampEstimate || '00:00'),
+      timestampEstimate: String(p?.timestampEstimate || p?.startTime || '00:00')
+    })),
+    synchronicStructure: synchronic.map((s: any) => ({
+      category: String(s?.category || s?.modality || 'Dimension'),
+      modality: String(s?.modality || s?.category || 'Dimension'),
+      description: String(s?.description || s?.details || ''),
+      details: String(s?.details || s?.description || ''),
+      submodality: s?.submodality ? String(s.submodality) : undefined
+    })),
+    satellites: Array.isArray(raw?.satellites) ? raw.satellites.map(String) : [],
+    suggestions: Array.isArray(raw?.suggestions) ? raw.suggestions.map(String) : []
+  };
 };
