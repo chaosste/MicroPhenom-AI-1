@@ -9,17 +9,22 @@ export interface Settings {
   spelling: 'US' | 'UK';
   accent: 'US' | 'UK';
   interviewMode: 'BEGINNER' | 'ADVANCED';
+  increasedSensitivityMode: boolean;
 }
 
 export interface DiachronicPhase {
+  phaseName?: string;
   phase: string;
   description: string;
+  startTime?: string;
   timestampEstimate?: string;
 }
 
 export interface SynchronicDimension {
-  modality: 'Visual' | 'Auditory' | 'Kinesthetic' | 'Cognitive' | 'Emotional';
+  category?: string;
+  modality: string;
   description: string;
+  details?: string;
   submodality?: string;
 }
 
@@ -30,6 +35,18 @@ export interface TranscriptSegment {
 }
 
 export interface AnalysisResult {
+  // Canonical schema
+  transcript?: TranscriptSegment[];
+  takeaways?: string[];
+  modalities?: string[];
+  phasesCount?: number;
+  codebookSuggestions?: {
+    label: string;
+    rationale: string;
+    exemplarQuote: string;
+  }[];
+
+  // Legacy-compatible fields
   transcriptSegments: TranscriptSegment[];
   summary: string;
   diachronicStructure: DiachronicPhase[];

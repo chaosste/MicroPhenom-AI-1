@@ -116,6 +116,7 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
         
         const isUK = settings.accent === 'UK';
         const isAdvanced = settings.interviewMode === 'ADVANCED';
+        const isSensitive = settings.increasedSensitivityMode;
         
         // 1. Voice Selection
         const voiceName = isUK ? 'Fenrir' : 'Kore';
@@ -152,6 +153,15 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
              - Explain WHY we are slowing down if they get confused.
              - Validate their experience frequently ("That makes sense", "Take your time").
              - Use simple questions: "What do you see right now in your mind's eye?" instead of "Describe the visual modality".`;
+        
+        const sensitivityInstruction = isSensitive
+          ? `*** ETHICAL CONTRACT: INCREASED SENSITIVITY MODE ***
+             - Slow the pace and ask one probe at a time.
+             - Reiterate that the participant can pause, skip, or stop.
+             - Prefer gentler, non-leading prompts and shorter follow-up chains.
+             - Offer grounding when intensity rises ("Take your time, feel your breath, we can pause").`
+          : `*** ETHICAL CONTRACT: STANDARD MODE ***
+             - Maintain consent-aware pacing and participant agency.`;
 
         const systemInstruction = `
           You are an expert Micro-phenomenology Interviewer (inspired by Vermersch/Petitmengin). 
@@ -182,6 +192,7 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
           1. ${personaInstruction}
           2. ${spellingInstruction}
           3. ${modeInstruction}
+          4. ${sensitivityInstruction}
 
           Start the session by briefly introducing yourself and asking the user if they have a specific moment in mind to explore.
         `;

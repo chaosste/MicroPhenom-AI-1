@@ -132,6 +132,27 @@ export const AnalysisView: React.FC<Props> = ({ session, onBack, onUpdateSession
     setNewCodeLabel('');
   };
 
+  const importCodebookSuggestions = () => {
+    const suggestions = analysis.codebookSuggestions || [];
+    if (suggestions.length === 0) return;
+    const existing = new Set(codes.map(c => c.label.trim().toLowerCase()));
+    const nextCodes: Code[] = [];
+    suggestions.forEach((s) => {
+      const label = s.label.trim();
+      if (!label || existing.has(label.toLowerCase())) return;
+      nextCodes.push({
+        id: `${Date.now()}-${nextCodes.length}`,
+        label,
+        color: COLORS[(codes.length + nextCodes.length) % COLORS.length].value
+      });
+    });
+    if (nextCodes.length === 0) return;
+    onUpdateSession({
+      ...session,
+      codes: [...codes, ...nextCodes]
+    });
+  };
+
   const handleDeleteCode = (codeId: string) => {
     onUpdateSession({
       ...session,
@@ -312,6 +333,28 @@ export const AnalysisView: React.FC<Props> = ({ session, onBack, onUpdateSession
               <Plus size={16} /> Create Code
             </button>
           </div>
+
+          {(analysis.codebookSuggestions?.length || 0) > 0 && (
+            <div className="bg-white p-3 rounded-lg border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-700">AI Codebook Seeds</p>
+                <button
+                  onClick={importCodebookSuggestions}
+                  className="text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                >
+                  Import all
+                </button>
+              </div>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {analysis.codebookSuggestions?.map((s, i) => (
+                  <div key={`${s.label}-${i}`} className="text-xs border border-slate-100 rounded p-2 bg-slate-50">
+                    <div className="font-semibold text-slate-800">{s.label}</div>
+                    <div className="text-slate-600">{s.rationale}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Code List */}
           <div className="space-y-2">
