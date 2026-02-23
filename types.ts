@@ -9,6 +9,7 @@ export interface Settings {
   spelling: 'US' | 'UK';
   accent: 'US' | 'UK';
   interviewMode: 'BEGINNER' | 'ADVANCED';
+  increasedSensitivityMode: boolean;
 }
 
 export interface DiachronicPhase {

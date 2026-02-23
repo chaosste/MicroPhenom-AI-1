@@ -12,7 +12,12 @@ const App: React.FC = () => {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMenu, setShowMenu] = useState(false);
-  const [settings, setSettings] = useState<Settings>({ spelling: 'US', accent: 'US', interviewMode: 'BEGINNER' });
+  const [settings, setSettings] = useState<Settings>({
+    spelling: 'US',
+    accent: 'US',
+    interviewMode: 'BEGINNER',
+    increasedSensitivityMode: false
+  });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -186,6 +191,7 @@ const App: React.FC = () => {
   const toggleSpelling = () => setSettings(p => ({ ...p, spelling: p.spelling === 'US' ? 'UK' : 'US' }));
   const toggleAccent = () => setSettings(p => ({ ...p, accent: p.accent === 'US' ? 'UK' : 'US' }));
   const toggleInterviewMode = () => setSettings(p => ({ ...p, interviewMode: p.interviewMode === 'BEGINNER' ? 'ADVANCED' : 'BEGINNER' }));
+  const toggleSensitivityMode = () => setSettings(p => ({ ...p, increasedSensitivityMode: !p.increasedSensitivityMode }));
 
   const renderHome = () => (
     <div className="max-w-6xl mx-auto p-6 md:p-10 w-full">
@@ -250,6 +256,19 @@ const App: React.FC = () => {
                    </div>
                    <span className={`text-xs font-bold px-2 py-1 rounded ${settings.interviewMode === 'ADVANCED' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
                      {settings.interviewMode}
+                   </span>
+                 </button>
+
+                 <button
+                   onClick={toggleSensitivityMode}
+                   className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between group"
+                 >
+                   <div className="flex items-center gap-3 text-slate-700">
+                     <Check size={16} className="text-slate-400 group-hover:text-indigo-500" />
+                     <span className="text-sm font-medium">Increased Sensitivity</span>
+                   </div>
+                   <span className={`text-xs font-bold px-2 py-1 rounded ${settings.increasedSensitivityMode ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                     {settings.increasedSensitivityMode ? 'ON' : 'OFF'}
                    </span>
                  </button>
               </div>
