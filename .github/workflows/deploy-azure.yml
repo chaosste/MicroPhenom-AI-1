@@ -38,9 +38,12 @@ jobs:
           zip -r ../deploy.zip .
 
       - name: Zip Deploy to Azure
+        env:
+          AZURE_WEBAPP_DEPLOY_USERNAME: ${{ secrets.AZURE_WEBAPP_DEPLOY_USERNAME }}
+          AZURE_WEBAPP_DEPLOY_PASSWORD: ${{ secrets.AZURE_WEBAPP_DEPLOY_PASSWORD }}
         run: |
           curl --fail-with-body -X POST \
-            -u "${{ secrets.AZURE_WEBAPP_DEPLOY_USERNAME }}:${{ secrets.AZURE_WEBAPP_DEPLOY_PASSWORD }}" \
+            -u "$AZURE_WEBAPP_DEPLOY_USERNAME:$AZURE_WEBAPP_DEPLOY_PASSWORD" \
             --data-binary @deploy.zip \
             "https://microphenom.scm.azurewebsites.net/api/zipdeploy"
 
