@@ -6,13 +6,11 @@ dist
 dist-ssr
 *.local
 
-# Environment variables - CRITICAL: Keep API keys out of git!
+# Environment variables - keep secrets out of git
 .env
-.env.local
-.env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+!.env.template
 
 # Editor directories and files
 .vscode/*
