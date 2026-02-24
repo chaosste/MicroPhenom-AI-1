@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, type Blob } from '@google/genai';
 import { Mic, MicOff, X, PhoneOff, Activity, Volume2 } from 'lucide-react';
 import { Settings } from '../types';
+import { connectAzureRealtimeSession } from '../services/azureRealtimeService';
 
 interface Props {
   onComplete: (transcript: string, duration: number) => void;
@@ -85,6 +86,7 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
   const nextStartTimeRef = useRef<number>(0);
   const sessionRef = useRef<any>(null); // To hold the active session
   const connectTimeoutRef = useRef<number | null>(null);
+  const azureAiBufferRef = useRef<string>('');
 
   const classifyError = (error: unknown) => {
     const text = `${(error as any)?.message || error || ''}`.toLowerCase();
@@ -102,6 +104,96 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
     
     const startSession = async () => {
       try {
+        const provider = settings.voiceProvider || 'GEMINI';
+        if (provider === 'AZURE_OPENAI_REALTIME') {
+          setDiagnostics({
+            key: 'checking',
+            mic: 'checking',
+            network: 'checking',
+            session: 'connecting',
+            message: 'Requesting Azure Realtime session...'
+          });
+          connectTimeoutRef.current = window.setTimeout(() => {
+            if (mounted) setStatus('error');
+            setDiagnostics((prev) => ({
+              ...prev,
+              network: 'fail',
+              session: 'error',
+              message: 'Azure Realtime connection timed out.'
+            }));
+          }, 15000);
+
+          const isUK = settings.accent === 'UK';
+          const isAdvanced = settings.interviewMode === 'ADVANCED';
+          const isSensitive = settings.increasedSensitivityMode;
+          const systemInstruction = `
+            You are an expert Micro-phenomenology Interviewer.
+            Use ${settings.spelling === 'UK' ? 'British' : 'American'} spelling.
+            Interview mode: ${isAdvanced ? 'ADVANCED' : 'BEGINNER'}.
+            Accent context: ${isUK ? 'UK' : 'US'}.
+            ${isSensitive ? 'Use increased sensitivity pacing and gentler probes.' : 'Use standard ethical pacing.'}
+            Focus strictly on concrete experiential process ("how"), not theory ("why").
+          `;
+
+          sessionRef.current = await connectAzureRealtimeSession(
+            systemInstruction,
+            settings.accent === 'UK' ? 'alloy' : 'verse',
+            {
+              onOpen: () => {
+                if (connectTimeoutRef.current) {
+                  window.clearTimeout(connectTimeoutRef.current);
+                  connectTimeoutRef.current = null;
+                }
+                if (mounted) setStatus('connected');
+                setIsActive(true);
+                setDiagnostics({
+                  key: 'ok',
+                  mic: 'ok',
+                  network: 'ok',
+                  session: 'live',
+                  message: 'Azure Realtime session connected.'
+                });
+              },
+              onClose: () => {
+                setIsActive(false);
+                setDiagnostics((prev) => prev.session === 'error'
+                  ? prev
+                  : { ...prev, session: 'closed', message: 'Session closed.' });
+              },
+              onError: (message) => {
+                if (mounted) setStatus('error');
+                const lowered = message.toLowerCase();
+                if (lowered.includes('configured') || lowered.includes('token') || lowered.includes('key')) {
+                  setDiagnostics((prev) => ({ ...prev, key: 'fail', session: 'error', message }));
+                } else if (lowered.includes('microphone') || lowered.includes('permission') || lowered.includes('notallowederror')) {
+                  setDiagnostics((prev) => ({ ...prev, mic: 'fail', session: 'error', message }));
+                } else {
+                  setDiagnostics((prev) => ({ ...prev, network: 'fail', session: 'error', message }));
+                }
+              },
+              onAiTranscriptDelta: (delta) => {
+                azureAiBufferRef.current += delta;
+              },
+              onAiTurnDone: () => {
+                const text = azureAiBufferRef.current.trim();
+                if (text.length > 0) transcriptRef.current.push(`AI: ${text}`);
+                azureAiBufferRef.current = '';
+              },
+              onUserTurn: (text) => {
+                if (text.trim()) transcriptRef.current.push(`Interviewee: ${text.trim()}`);
+              }
+            }
+          );
+
+          timerRef.current = setInterval(() => {
+            setDuration(d => {
+              durationRef.current = d + 1;
+              return d + 1;
+            });
+          }, 1000);
+          return;
+        }
+
         if (!settings.apiKey || !settings.apiKey.trim()) {
           throw new Error("Missing Gemini API key. Set it in Settings.");
         }
@@ -371,12 +463,23 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
       if (inputContextRef.current) inputContextRef.current.close();
       if (outputContextRef.current) outputContextRef.current.close();
       if (sessionRef.current) {
-        sessionRef.current.then((s: any) => s.close && s.close());
+        if (typeof sessionRef.current.then === 'function') {
+          sessionRef.current.then((s: any) => s.close && s.close());
+        } else if (typeof sessionRef.current.close === 'function') {
+          sessionRef.current.close();
+        }
       }
     };
   }, [settings]);
 
   const handleEndSession = async () => {
+    if (sessionRef.current) {
+      if (typeof sessionRef.current.then === 'function') {
+        sessionRef.current.then((s: any) => s.close && s.close());
+      } else if (typeof sessionRef.current.close === 'function') {
+        sessionRef.current.close();
+      }
+    }
     const simulatedTranscript = transcriptRef.current.join("\n");
     const finalTranscript = simulatedTranscript.length > 0 ? simulatedTranscript : "Conversational Session (Audio)";
     onComplete(finalTranscript, durationRef.current);

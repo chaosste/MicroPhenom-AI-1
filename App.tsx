@@ -17,6 +17,7 @@ const App: React.FC = () => {
     accent: 'US',
     interviewMode: 'BEGINNER',
     increasedSensitivityMode: false,
+    voiceProvider: 'GEMINI',
     apiKey: ''
   });
   
@@ -207,6 +208,11 @@ const App: React.FC = () => {
   const toggleAccent = () => setSettings(p => ({ ...p, accent: p.accent === 'US' ? 'UK' : 'US' }));
   const toggleInterviewMode = () => setSettings(p => ({ ...p, interviewMode: p.interviewMode === 'BEGINNER' ? 'ADVANCED' : 'BEGINNER' }));
   const toggleSensitivityMode = () => setSettings(p => ({ ...p, increasedSensitivityMode: !p.increasedSensitivityMode }));
+  const toggleVoiceProvider = () =>
+    setSettings((p) => ({
+      ...p,
+      voiceProvider: p.voiceProvider === 'AZURE_OPENAI_REALTIME' ? 'GEMINI' : 'AZURE_OPENAI_REALTIME'
+    }));
 
   const renderHome = () => (
     <div className="max-w-6xl mx-auto p-6 md:p-10 w-full">
@@ -284,6 +290,19 @@ const App: React.FC = () => {
                    </div>
                    <span className={`text-xs font-bold px-2 py-1 rounded ${settings.increasedSensitivityMode ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                      {settings.increasedSensitivityMode ? 'ON' : 'OFF'}
+                   </span>
+                 </button>
+
+                 <button
+                   onClick={toggleVoiceProvider}
+                   className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between group"
+                 >
+                   <div className="flex items-center gap-3 text-slate-700">
+                     <MessageSquare size={16} className="text-slate-400 group-hover:text-indigo-500" />
+                     <span className="text-sm font-medium">Voice Provider</span>
+                   </div>
+                   <span className="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                     {(settings.voiceProvider || 'GEMINI') === 'AZURE_OPENAI_REALTIME' ? 'AZURE' : 'GEMINI'}
                    </span>
                  </button>
 

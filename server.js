@@ -133,6 +133,79 @@ async function handleAnalyze(req, res) {
   }
 }
 
+async function handleRealtimeClientSecret(req, res) {
+  const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
+  const apiKey = process.env.AZURE_OPENAI_API_KEY;
+  const deployment =
+    process.env.AZURE_OPENAI_REALTIME_DEPLOYMENT ||
+    process.env.AZURE_OPENAI_DEPLOYMENT_REALTIME;
+  const voice = process.env.AZURE_OPENAI_REALTIME_VOICE || 'verse';
+
+  if (!endpoint || !apiKey || !deployment) {
+    return sendJson(res, 500, {
+      error:
+        'Missing AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, or AZURE_OPENAI_REALTIME_DEPLOYMENT'
+    });
+  }
+
+  let body = {};
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return sendJson(res, 400, { error: error.message });
+  }
+
+  const cleanEndpoint = endpoint.replace(/\/$/, '');
+  const url = `${cleanEndpoint}/openai/v1/realtime/client_secrets`;
+  const selectedVoice = typeof body.voice === 'string' && body.voice.trim().length > 0 ? body.voice : voice;
+  const instructions = typeof body.instructions === 'string' ? body.instructions : '';
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': apiKey
+      },
+      body: JSON.stringify({
+        session: {
+          type: 'realtime',
+          model: deployment,
+          instructions,
+          audio: { output: { voice: selectedVoice } }
+        }
+      })
+    });
+
+    const parsed = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return sendJson(res, response.status, {
+        error: parsed?.error?.message || 'Azure realtime token request failed'
+      });
+    }
+
+    const token =
+      parsed?.value ||
+      parsed?.token ||
+      parsed?.client_secret?.value ||
+      parsed?.clientSecret?.value;
+    if (!token) {
+      return sendJson(res, 502, { error: 'Realtime token missing from Azure response' });
+    }
+
+    return sendJson(res, 200, {
+      token,
+      callsUrl: `${cleanEndpoint}/openai/v1/realtime/calls?webrtcfilter=on`,
+      deployment
+    });
+  } catch (error) {
+    return sendJson(res, 500, {
+      error: 'Unexpected realtime token error',
+      details: error.message
+    });
+  }
+}
+
 function serveStatic(req, res) {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = decodeURIComponent(parsedUrl.pathname);
@@ -167,15 +240,25 @@ function serveStatic(req, res) {
 
 const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url && req.url.startsWith('/api/health')) {
+    const realtimeConfigured = Boolean(
+      process.env.AZURE_OPENAI_ENDPOINT &&
+        process.env.AZURE_OPENAI_API_KEY &&
+        (process.env.AZURE_OPENAI_REALTIME_DEPLOYMENT || process.env.AZURE_OPENAI_DEPLOYMENT_REALTIME)
+    );
     return sendJson(res, 200, {
       status: 'ok',
       service: 'microphenom-ai',
+      realtimeConfigured,
       time: new Date().toISOString()
     });
   }
 
   if (req.method === 'POST' && req.url === '/api/analyze') {
     return handleAnalyze(req, res);
+  }
+
+  if (req.method === 'POST' && req.url === '/api/realtime/client-secret') {
+    return handleRealtimeClientSecret(req, res);
   }
 
   serveStatic(req, res);

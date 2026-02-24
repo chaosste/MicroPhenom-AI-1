@@ -5,11 +5,14 @@ export enum AppState {
   LIVE_INTERVIEW = 'LIVE_INTERVIEW',
 }
 
+export type VoiceProvider = 'GEMINI' | 'AZURE_OPENAI_REALTIME';
+
 export interface Settings {
   spelling: 'US' | 'UK';
   accent: 'US' | 'UK';
   interviewMode: 'BEGINNER' | 'ADVANCED';
   increasedSensitivityMode: boolean;
+  voiceProvider?: VoiceProvider;
   apiKey?: string;
 }
 
