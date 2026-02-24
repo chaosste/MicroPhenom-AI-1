@@ -66,6 +66,13 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [volumeLevel, setVolumeLevel] = useState(0);
+  const [diagnostics, setDiagnostics] = useState({
+    key: 'unknown',
+    mic: 'unknown',
+    network: 'unknown',
+    session: 'connecting',
+    message: 'Starting connection checks...'
+  });
   
   const transcriptRef = useRef<string[]>([]);
   const durationRef = useRef<number>(0);
@@ -77,6 +84,18 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const nextStartTimeRef = useRef<number>(0);
   const sessionRef = useRef<any>(null); // To hold the active session
+  const connectTimeoutRef = useRef<number | null>(null);
+
+  const classifyError = (error: unknown) => {
+    const text = `${(error as any)?.message || error || ''}`.toLowerCase();
+    if (text.includes('api key') || text.includes('key') || text.includes('auth') || text.includes('permission denied')) {
+      return { key: 'fail', mic: diagnostics.mic, network: diagnostics.network, session: 'error', message: 'API key rejected or missing. Update key in settings.' };
+    }
+    if (text.includes('microphone') || text.includes('permission') || text.includes('notallowederror') || text.includes('notfounderror')) {
+      return { key: diagnostics.key, mic: 'fail', network: diagnostics.network, session: 'error', message: 'Microphone access blocked or unavailable.' };
+    }
+    return { key: diagnostics.key, mic: diagnostics.mic, network: 'fail', session: 'error', message: 'Network/session link failed. Check connection and retry.' };
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -86,6 +105,13 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
         if (!settings.apiKey || !settings.apiKey.trim()) {
           throw new Error("Missing Gemini API key. Set it in Settings.");
         }
+        setDiagnostics({
+          key: 'ok',
+          mic: 'checking',
+          network: 'checking',
+          session: 'connecting',
+          message: 'API key found. Requesting microphone access...'
+        });
         const ai = new GoogleGenAI({ apiKey: settings.apiKey });
         
         // Setup Audio Contexts
@@ -99,6 +125,13 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
 
         // Microphone Stream
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setDiagnostics({
+          key: 'ok',
+          mic: 'ok',
+          network: 'checking',
+          session: 'connecting',
+          message: 'Microphone ready. Opening live model connection...'
+        });
         const source = inputAudioContext.createMediaStreamSource(stream);
         const scriptProcessor = inputAudioContext.createScriptProcessor(4096, 1, 1);
         
@@ -205,6 +238,17 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
           callbacks: {
             onopen: () => {
               if (mounted) setStatus('connected');
+              if (connectTimeoutRef.current) {
+                window.clearTimeout(connectTimeoutRef.current);
+                connectTimeoutRef.current = null;
+              }
+              setDiagnostics({
+                key: 'ok',
+                mic: 'ok',
+                network: 'ok',
+                session: 'live',
+                message: 'Live session connected.'
+              });
               
               // Stream audio from the microphone to the model.
               scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
@@ -262,10 +306,16 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
             },
             onclose: () => {
               console.log("Session closed");
+              setDiagnostics((prev) => ({
+                ...prev,
+                session: 'closed',
+                message: 'Session closed.'
+              }));
             },
             onerror: (err) => {
               console.error("Live API Error:", err);
               if (mounted) setStatus('error');
+              setDiagnostics(classifyError(err));
             }
           },
           config: {
@@ -277,6 +327,16 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
             systemInstruction: systemInstruction,
           }
         });
+
+        connectTimeoutRef.current = window.setTimeout(() => {
+          setStatus('error');
+          setDiagnostics((prev) => ({
+            ...prev,
+            network: 'fail',
+            session: 'error',
+            message: 'Connection timed out. Verify network and API key.'
+          }));
+        }, 15000);
 
         sessionRef.current = sessionPromise;
 
@@ -295,6 +355,7 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
       } catch (e) {
         console.error("Failed to init session", e);
         setStatus('error');
+        setDiagnostics(classifyError(e));
       }
     };
 
@@ -302,6 +363,10 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
 
     return () => {
       mounted = false;
+      if (connectTimeoutRef.current) {
+        window.clearTimeout(connectTimeoutRef.current);
+        connectTimeoutRef.current = null;
+      }
       if (timerRef.current) clearInterval(timerRef.current);
       if (inputContextRef.current) inputContextRef.current.close();
       if (outputContextRef.current) outputContextRef.current.close();
@@ -351,6 +416,16 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
           <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">
             <X size={24} />
           </button>
+        </div>
+
+        <div className="mb-8 rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
+            <span>Key: <strong>{String(diagnostics.key).toUpperCase()}</strong></span>
+            <span>Mic: <strong>{String(diagnostics.mic).toUpperCase()}</strong></span>
+            <span>Network: <strong>{String(diagnostics.network).toUpperCase()}</strong></span>
+            <span>Session: <strong>{String(diagnostics.session).toUpperCase()}</strong></span>
+          </div>
+          <p className="mt-2 text-xs text-slate-300">{diagnostics.message}</p>
         </div>
 
         {/* Central Visualizer */}
