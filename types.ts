@@ -10,6 +10,7 @@ export interface Settings {
   accent: 'US' | 'UK';
   interviewMode: 'BEGINNER' | 'ADVANCED';
   increasedSensitivityMode: boolean;
+  apiKey?: string;
 }
 
 export interface DiachronicPhase {

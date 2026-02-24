@@ -16,7 +16,8 @@ const App: React.FC = () => {
     spelling: 'US',
     accent: 'US',
     interviewMode: 'BEGINNER',
-    increasedSensitivityMode: false
+    increasedSensitivityMode: false,
+    apiKey: ''
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +32,16 @@ const App: React.FC = () => {
         setSessions(parsed);
       } catch (e) {
         console.error("Failed to load sessions", e);
+      }
+    }
+
+    const savedSettings = localStorage.getItem('microphenom_settings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings) as Settings;
+        setSettings((prev) => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.error("Failed to load settings", e);
       }
     }
     
@@ -49,6 +60,10 @@ const App: React.FC = () => {
     const sessionsToSave = sessions.map(({ audioBlob, ...rest }) => rest);
     localStorage.setItem('microphenom_sessions', JSON.stringify(sessionsToSave));
   }, [sessions]);
+
+  useEffect(() => {
+    localStorage.setItem('microphenom_settings', JSON.stringify(settings));
+  }, [settings]);
 
   const startNewInterview = () => {
     setView(AppState.RECORDING);
@@ -74,7 +89,7 @@ const App: React.FC = () => {
     setView(AppState.HOME); 
 
     try {
-      const result = await analyzeInterview(audioBlob);
+      const result = await analyzeInterview(audioBlob, settings.apiKey || '');
       setSessions((prev) => 
         prev.map(s => s.id === newSession.id ? { ...s, analysis: result, isAnalyzing: false } : s)
       );
@@ -107,7 +122,7 @@ const App: React.FC = () => {
     // We treat this as a "Text Transcript" analysis flow.
     try {
       // We pass the partial transcript or a prompt to "infer" structure if audio isn't available
-      const result = await analyzeTextTranscript(transcript || "Audio Interview conducted via Conversational AI.");
+      const result = await analyzeTextTranscript(transcript || "Audio Interview conducted via Conversational AI.", settings.apiKey || '');
       setSessions((prev) => 
         prev.map(s => s.id === newSession.id ? { ...s, analysis: result, isAnalyzing: false } : s)
       );
@@ -141,7 +156,7 @@ const App: React.FC = () => {
       setCurrentSessionId(newSession.id);
 
       try {
-        const result = await analyzeTextTranscript(text);
+        const result = await analyzeTextTranscript(text, settings.apiKey || '');
         setSessions((prev) => 
           prev.map(s => s.id === newSession.id ? { ...s, analysis: result, isAnalyzing: false } : s)
         );
@@ -259,7 +274,7 @@ const App: React.FC = () => {
                    </span>
                  </button>
 
-                 <button
+                 <button 
                    onClick={toggleSensitivityMode}
                    className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between group"
                  >
@@ -271,6 +286,17 @@ const App: React.FC = () => {
                      {settings.increasedSensitivityMode ? 'ON' : 'OFF'}
                    </span>
                  </button>
+
+                 <div className="px-4 py-3 border-t border-slate-50">
+                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Gemini API Key</label>
+                   <input
+                     type="password"
+                     value={settings.apiKey || ''}
+                     onChange={(e) => setSettings((p) => ({ ...p, apiKey: e.target.value }))}
+                     placeholder="Enter API key"
+                     className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   />
+                 </div>
               </div>
             )}
           </div>

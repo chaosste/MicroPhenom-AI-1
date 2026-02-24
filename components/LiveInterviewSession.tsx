@@ -83,7 +83,10 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
     
     const startSession = async () => {
       try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        if (!settings.apiKey || !settings.apiKey.trim()) {
+          throw new Error("Missing Gemini API key. Set it in Settings.");
+        }
+        const ai = new GoogleGenAI({ apiKey: settings.apiKey });
         
         // Setup Audio Contexts
         const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 16000});

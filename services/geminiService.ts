@@ -16,8 +16,9 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
   });
 };
 
-export const getWelcomeMessage = async (): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const getWelcomeMessage = async (apiKey: string): Promise<string> => {
+  if (!apiKey.trim()) throw new Error("Missing Gemini API key.");
+  const ai = new GoogleGenAI({ apiKey });
   const modelId = "gemini-2.5-flash"; 
   
   const prompt = `
@@ -40,8 +41,9 @@ export const getWelcomeMessage = async (): Promise<string> => {
   }
 };
 
-export const analyzeTextTranscript = async (text: string): Promise<AnalysisResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const analyzeTextTranscript = async (text: string, apiKey: string): Promise<AnalysisResult> => {
+  if (!apiKey.trim()) throw new Error("Missing Gemini API key.");
+  const ai = new GoogleGenAI({ apiKey });
   const modelId = "gemini-2.5-flash";
 
   const prompt = `
@@ -100,8 +102,9 @@ export const analyzeTextTranscript = async (text: string): Promise<AnalysisResul
   }
 };
 
-export const analyzeInterview = async (audioBlob: Blob): Promise<AnalysisResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const analyzeInterview = async (audioBlob: Blob, apiKey: string): Promise<AnalysisResult> => {
+  if (!apiKey.trim()) throw new Error("Missing Gemini API key.");
+  const ai = new GoogleGenAI({ apiKey });
   const base64Audio = await blobToBase64(audioBlob);
 
   const modelId = "gemini-2.5-flash"; 
