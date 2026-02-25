@@ -169,7 +169,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url && req.url.startsWith('/api/health')) {
     return sendJson(res, 200, {
       status: 'ok',
-      service: 'microphenom-ai',
+      service: 'microphenomai',
       time: new Date().toISOString()
     });
   }

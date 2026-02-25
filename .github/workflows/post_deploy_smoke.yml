@@ -14,7 +14,7 @@ permissions:
 env:
   AZURE_HEALTH_URL: https://microphenom.azurewebsites.net/api/health
   CUSTOM_HEALTH_URL: https://www.microphenomai.newpsychonaut.com/api/health
-  EXPECTED_SUBSTRING: '"service":"microphenom-ai"'
+  EXPECTED_SUBSTRING: '"service":"microphenomai"'
 
 jobs:
   smoke:
