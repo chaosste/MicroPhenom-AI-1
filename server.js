@@ -247,7 +247,7 @@ const server = http.createServer(async (req, res) => {
     );
     return sendJson(res, 200, {
       status: 'ok',
-      service: 'microphenom-ai',
+      service: 'microphenomai',
       realtimeConfigured,
       time: new Date().toISOString()
     });
