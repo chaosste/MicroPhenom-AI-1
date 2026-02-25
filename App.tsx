@@ -24,7 +24,7 @@ const App: React.FC = () => {
 
   // Load sessions from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('microphenom_sessions');
+    const saved = localStorage.getItem('microphenomai_sessions') ?? localStorage.getItem('microphenom_sessions');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -47,7 +47,7 @@ const App: React.FC = () => {
   // Save sessions to localStorage whenever they change
   useEffect(() => {
     const sessionsToSave = sessions.map(({ audioBlob, ...rest }) => rest);
-    localStorage.setItem('microphenom_sessions', JSON.stringify(sessionsToSave));
+    localStorage.setItem('microphenomai_sessions', JSON.stringify(sessionsToSave));
   }, [sessions]);
 
   const startNewInterview = () => {
