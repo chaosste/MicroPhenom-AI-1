@@ -137,7 +137,7 @@ export const LiveInterviewSession: React.FC<Props> = ({ onComplete, onCancel, se
 
           sessionRef.current = await connectAzureRealtimeSession(
             systemInstruction,
-            settings.accent === 'UK' ? 'alloy' : 'verse',
+            'verse',
             {
               onOpen: () => {
                 if (connectTimeoutRef.current) {
