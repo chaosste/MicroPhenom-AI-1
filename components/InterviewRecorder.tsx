@@ -15,7 +15,7 @@ export const InterviewRecorder: React.FC<Props> = ({ onSave, onCancel }) => {
   const [showGuide, setShowGuide] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState<string>('');
   const [isLoadingMessage, setIsLoadingMessage] = useState(true);
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -40,7 +40,7 @@ export const InterviewRecorder: React.FC<Props> = ({ onSave, onCancel }) => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setStream(mediaStream);
-      
+
       const mediaRecorder = new MediaRecorder(mediaStream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
@@ -87,32 +87,32 @@ export const InterviewRecorder: React.FC<Props> = ({ onSave, onCancel }) => {
       <div className="p-6 border-b border-slate-100 flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-semibold text-slate-800">Conduct Interview</h2>
-          <p className="text-slate-500 text-sm">Focus on evoking the specific past experience.</p>
+          <p className="text-slate-400 text-sm">Focus on evoking the specific past experience.</p>
         </div>
-        <div className="flex items-center gap-2 text-rose-500 font-mono text-xl font-bold bg-rose-50 px-4 py-2 rounded-lg">
-          {isRecording && <div className="w-3 h-3 rounded-full bg-rose-500 animate-pulse mr-2" />}
+        <div className="flex items-center gap-2 font-mono text-xl font-bold px-4 py-2 rounded-lg" style={{backgroundColor: isRecording ? 'rgba(196,128,108,0.08)' : 'rgba(148,163,184,0.15)', color: isRecording ? '#C4806C' : '#64748b'}}>
+          {isRecording && <div className="w-3 h-3 rounded-full animate-pulse" style={{backgroundColor: '#C4806C'}} />}
           {formatTime(duration)}
         </div>
       </div>
 
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Main Recording Area */}
-        <div className="flex-1 p-8 flex flex-col items-center justify-center space-y-8 bg-slate-50">
-          
+        <div className="flex-1 p-8 flex flex-col items-center justify-center space-y-8 bg-[#E4F2EF]">
+
           {/* AI Welcome Message */}
           <div className="max-w-xl w-full">
             {isLoadingMessage ? (
               <div className="flex flex-col items-center justify-center p-6 text-slate-400 gap-2 h-32">
-                 <Sparkles size={20} className="animate-spin text-indigo-400" />
+                 <Sparkles size={20} className="animate-spin" style={{color: '#3D7E7E'}} />
                  <span className="text-sm">Connecting to AI Guide...</span>
               </div>
             ) : (
-               <div className="bg-white p-6 rounded-2xl border border-indigo-100 shadow-sm relative mx-auto transform transition-all animate-in fade-in slide-in-from-top-4 duration-500">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm border border-indigo-200">
+               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative mx-auto transform transition-all animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2A6B6B] text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm">
                     <Sparkles size={12} /> AI Guide
                   </div>
-                  <p className="text-slate-700 font-medium leading-relaxed italic text-center">
-                    "{welcomeMessage}"
+                  <p className="text-slate-600 font-medium leading-relaxed italic text-center">
+                    &ldquo;{welcomeMessage}&rdquo;
                   </p>
                </div>
             )}
@@ -126,7 +126,7 @@ export const InterviewRecorder: React.FC<Props> = ({ onSave, onCancel }) => {
                 onClick={startRecording}
                 className="flex flex-col items-center gap-2 group"
               >
-                <div className="w-20 h-20 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-all group-hover:shadow-rose-200">
+                <div className="w-20 h-20 rounded-full bg-[#2A6B6B] text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-all">
                   <Mic size={32} />
                 </div>
                 <span className="font-medium text-slate-600">Start Recording</span>
@@ -136,32 +136,32 @@ export const InterviewRecorder: React.FC<Props> = ({ onSave, onCancel }) => {
                 onClick={stopRecording}
                 className="flex flex-col items-center gap-2 group"
               >
-                <div className="w-20 h-20 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-all">
+                <div className="w-20 h-20 rounded-full bg-[#1F5454] text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-all">
                   <Square size={28} fill="currentColor" />
                 </div>
-                <span className="font-medium text-slate-600">Stop & Analyze</span>
+                <span className="font-medium text-slate-600">Stop & Analyse</span>
               </button>
             )}
           </div>
 
-          <div className="text-center max-w-md text-slate-500 text-sm">
-            The session will be analyzed by Gemini AI immediately after stopping.
-            Ensure you have provided the API Key.
+          <div className="text-center max-w-md text-slate-400 text-sm">
+            The session will be analysed by AI immediately after stopping.
+            Ensure you have provided the API Key in Settings.
           </div>
         </div>
 
         {/* Guidance Panel */}
         <div className={`w-full md:w-80 bg-white border-l border-slate-100 flex flex-col transition-all duration-300 ${showGuide ? 'translate-x-0' : 'translate-x-full hidden md:flex'}`}>
-          <div className="p-4 border-b border-slate-100 bg-indigo-50 flex items-center gap-2">
-            <HelpCircle size={18} className="text-indigo-600" />
-            <span className="font-semibold text-indigo-900">Interviewer Guide</span>
+          <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+            <HelpCircle size={18} className="text-slate-600" />
+            <span className="font-semibold text-slate-800">Interviewer Guide</span>
           </div>
-          
+
           <div className="p-4 overflow-y-auto space-y-6 flex-1">
             <section>
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">The Goal</h3>
               <p className="text-sm text-slate-600">
-                Help the interviewee <span className="font-bold text-indigo-600">evoke</span> a specific past moment. Move from "what" (content) to "how" (experience).
+                Help the interviewee <span className="font-bold text-[#2A6B6B]">evoke</span> a specific past moment. Move from &ldquo;what&rdquo; (content) to &ldquo;how&rdquo; (experience).
               </p>
             </section>
 
@@ -169,15 +169,15 @@ export const InterviewRecorder: React.FC<Props> = ({ onSave, onCancel }) => {
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Golden Rules</h3>
               <ul className="space-y-3 text-sm text-slate-700">
                 <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
+                  <span style={{color: '#5E9E78'}} className="font-bold">&#10003;</span>
                   <span>Ask <strong>HOW</strong> (process, feeling, sensory).</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Avoid <strong>WHY</strong> (causes justifications).</span>
+                  <span style={{color: '#C4806C'}} className="font-bold">&#10007;</span>
+                  <span>Avoid <strong>WHY</strong> (causes, justifications).</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
+                  <span style={{color: '#5E9E78'}} className="font-bold">&#10003;</span>
                   <span>Use their exact words (echoing).</span>
                 </li>
               </ul>
@@ -186,17 +186,17 @@ export const InterviewRecorder: React.FC<Props> = ({ onSave, onCancel }) => {
             <section>
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Useful Prompts</h3>
               <div className="space-y-2">
-                <div className="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-200">
-                  "When you say [word], what do you see/hear/feel?"
+                <div className="bg-slate-50 p-3 rounded text-sm text-slate-600 border border-slate-200">
+                  &ldquo;When you say [word], what do you see/hear/feel?&rdquo;
                 </div>
-                <div className="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-200">
-                  "Take your time to let the moment come back..."
+                <div className="bg-slate-50 p-3 rounded text-sm text-slate-600 border border-slate-200">
+                  &ldquo;Take your time to let the moment come back...&rdquo;
                 </div>
-                <div className="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-200">
-                  "Where is that sensation located?"
+                <div className="bg-slate-50 p-3 rounded text-sm text-slate-600 border border-slate-200">
+                  &ldquo;Where is that sensation located?&rdquo;
                 </div>
-                <div className="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-200">
-                  "Is it a moving image or a still one?"
+                <div className="bg-slate-50 p-3 rounded text-sm text-slate-600 border border-slate-200">
+                  &ldquo;Is it a moving image or a still one?&rdquo;
                 </div>
               </div>
             </section>

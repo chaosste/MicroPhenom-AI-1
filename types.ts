@@ -10,6 +10,9 @@ export interface Settings {
   accent: 'US' | 'UK';
   interviewMode: 'BEGINNER' | 'ADVANCED';
   increasedSensitivityMode: boolean;
+  apiProvider: 'gemini' | 'claude';
+  geminiApiKey: string;
+  claudeApiKey: string;
 }
 
 export interface DiachronicPhase {

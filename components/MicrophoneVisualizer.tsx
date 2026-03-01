@@ -5,6 +5,15 @@ interface Props {
   isRecording: boolean;
 }
 
+// Palette-derived bar colours — professional complementary tones
+const BAR_COLORS = [
+  [61, 126, 126],   // Field Teal
+  [196, 128, 108],  // Warm Coral
+  [94, 158, 120],   // Sage
+  [94, 126, 160],   // Slate Blue
+  [176, 112, 128],  // Dusty Rose
+];
+
 export const MicrophoneVisualizer: React.FC<Props> = ({ stream, isRecording }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -17,20 +26,20 @@ export const MicrophoneVisualizer: React.FC<Props> = ({ stream, isRecording }) =
     const audioContext = new AudioContext();
     const source = audioContext.createMediaStreamSource(stream);
     const analyser = audioContext.createAnalyser();
-    
+
     analyser.fftSize = 256;
     source.connect(analyser);
-    
+
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    
+
     analyserRef.current = analyser;
     dataArrayRef.current = dataArray;
 
     const draw = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      
+
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
@@ -46,7 +55,7 @@ export const MicrophoneVisualizer: React.FC<Props> = ({ stream, isRecording }) =
 
       analyser.getByteFrequencyData(dataArray);
 
-      ctx.fillStyle = 'rgb(248, 250, 252)'; // slate-50
+      ctx.fillStyle = 'rgb(228, 242, 239)'; // duck egg blue
       ctx.fillRect(0, 0, width, height);
 
       const barWidth = (width / bufferLength) * 2.5;
@@ -56,11 +65,14 @@ export const MicrophoneVisualizer: React.FC<Props> = ({ stream, isRecording }) =
       for (let i = 0; i < bufferLength; i++) {
         barHeight = dataArray[i] / 2;
 
-        const r = barHeight + 25 * (i / bufferLength);
-        const g = 250 * (i / bufferLength);
-        const b = 50;
+        // Cycle through the palette colours
+        const colorIdx = Math.floor((i / bufferLength) * BAR_COLORS.length);
+        const [r, g, b] = BAR_COLORS[Math.min(colorIdx, BAR_COLORS.length - 1)];
 
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        // Modulate brightness by bar height
+        const brightness = 0.5 + (barHeight / 256) * 0.5;
+
+        ctx.fillStyle = `rgba(${Math.round(r * brightness)},${Math.round(g * brightness)},${Math.round(b * brightness)}, 0.8)`;
         ctx.fillRect(x, height - barHeight, barWidth, barHeight);
 
         x += barWidth + 1;
@@ -76,11 +88,11 @@ export const MicrophoneVisualizer: React.FC<Props> = ({ stream, isRecording }) =
   }, [stream, isRecording]);
 
   return (
-    <canvas 
-      ref={canvasRef} 
-      width={600} 
-      height={100} 
-      className="w-full h-24 rounded-lg bg-slate-50 border border-slate-200"
+    <canvas
+      ref={canvasRef}
+      width={600}
+      height={100}
+      className="w-full h-24 rounded-lg bg-[#E4F2EF] border border-[#B0C8C5]"
     />
   );
 };
