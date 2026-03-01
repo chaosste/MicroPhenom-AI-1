@@ -133,6 +133,49 @@ async function handleAnalyze(req, res) {
   }
 }
 
+async function handleClaudeAnalyze(req, res) {
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return sendJson(res, 400, { error: error.message });
+  }
+
+  const { apiKey, model, max_tokens, messages } = body;
+
+  if (!apiKey) {
+    return sendJson(res, 400, { error: 'Field "apiKey" is required' });
+  }
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model || 'claude-sonnet-4-6',
+        max_tokens: max_tokens || 4096,
+        messages: messages || [],
+      }),
+    });
+
+    const raw = await response.text();
+
+    res.writeHead(response.status, {
+      'Content-Type': 'application/json',
+    });
+    res.end(raw);
+  } catch (error) {
+    return sendJson(res, 500, {
+      error: 'Claude API proxy error',
+      details: error.message,
+    });
+  }
+}
+
 function serveStatic(req, res) {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = decodeURIComponent(parsedUrl.pathname);
@@ -176,6 +219,10 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'POST' && req.url === '/api/analyze') {
     return handleAnalyze(req, res);
+  }
+
+  if (req.method === 'POST' && req.url === '/api/claude-analyze') {
+    return handleClaudeAnalyze(req, res);
   }
 
   serveStatic(req, res);
